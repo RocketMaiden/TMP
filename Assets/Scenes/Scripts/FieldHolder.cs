@@ -1,28 +1,48 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class Field : MonoBehaviour
+public class FieldHolder : MonoBehaviour
 {
     [SerializeField]
     private GameObject _nodePrefab = null;
 
-    public Node[,] field;
-    public int width = 6;
-    public int height = 6;    
+    private Node[,] _field;
+    private int _width;
+    private int _height;
+
+    public int Width => _width;
+    public int Height => _height;
+    public Node[,] Field => _field;
 
     // Start is called before the first frame update
-    private void Start()
+    public void Initialize(int width, int height)
     {
-        field = new Node[width, height];
+        _width = width;
+        _height = height;
+        _field = new Node[_width, _height];
         
         GenerateField();
     }
 
-    private void Update()
+    public void Tick()
     {
         InputHandler();        
     }
 
+    private void GenerateField()
+    {
+        for (int i = 0; i < _width; i++)
+        {
+            for (int j = 0; j < _height; j++)
+            {
+                var go = Instantiate(_nodePrefab, new Vector3(i + i * 0.1f, 0f, j + j * 0.1f), Quaternion.identity);
+                go.transform.SetParent(this.transform);
+
+                var node = go.GetComponent<Node>();
+                _field[i, j] = node;
+            }
+        }
+        ClearNodeType();
+    }
     private void InputHandler()
     {
         if (Input.GetMouseButton(0))
@@ -71,8 +91,6 @@ public class Field : MonoBehaviour
             }
         }
 
-
-
         if (Input.GetMouseButton(0) && Input.GetKey(KeyCode.LeftShift))
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -113,13 +131,13 @@ public class Field : MonoBehaviour
 
     private void ReplaceNodeType(NodeType from, NodeType to)
     {
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < _width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < _height; j++)
             {
-                if (field[i, j].NodeType == from)
+                if (_field[i, j].NodeType == from)
                 {
-                    SetNode(field[i, j], to);                    
+                    SetNode(_field[i, j], to);                    
                 }
             }
         }
@@ -127,29 +145,15 @@ public class Field : MonoBehaviour
 
     private void ClearNodeType()
     {
-        for (int i = 0; i < width; i++)
+        for (int i = 0; i < _width; i++)
         {
-            for (int j = 0; j < height; j++)
+            for (int j = 0; j < _height; j++)
             {
-                SetNode(field[i, j], NodeType.Passable);
+                SetNode(_field[i, j], NodeType.Passable);
             }
         }
-    }   
+    }  
 
-    private void GenerateField()
-    {
-        for (int i = 0; i < width; i++)
-        {
-            for (int j = 0; j < height; j++)
-            {
-                var go = Instantiate(_nodePrefab, new Vector3(i + i * 0.1f, 0f, j + j * 0.1f), Quaternion.identity);
-                go.transform.SetParent(this.transform);
-
-                var node = go.GetComponent<Node>();
-                field[i, j] = node;
-            }
-        }
-        ClearNodeType();
-    }
+    
 
 }

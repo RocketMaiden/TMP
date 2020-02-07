@@ -4,40 +4,47 @@ using UnityEngine;
 
 public class Path : MonoBehaviour
 {
-    public List<Vector3> Road;
-    
+    [SerializeField]
+    private GameObject _player = null;
 
-    public Vector3 Position;
-    public Vector3 Target;
+    private List<Vector3> _path;
+    private Vector3 _start;
+    private Vector3 _target;
+    private int _currentIndex;
+    private float _movementSpeed;    
 
-    private int currentIndex;
-    private float movementSpeed;
-
-    private void Start()
+    public void Initialize(Vector3 start)
     {
-        
-        //Position = Road[0];
-        //Target = Road[1];
-        currentIndex = 0;       
-
+        _start = start;
+        _target = start;
+        _currentIndex = 0;
+        _movementSpeed = 3.5f;
     }
 
-    private void Update()
+    public void SetRoad(List<Vector3> path)
     {
-        movementSpeed = 0.7f * Time.deltaTime;
-        if (Vector3.Distance(Position, Target) > 0.1f)
+        _path = path;
+    }
+    
+    public void Tick()
+    { 
+        if(_path == null || _path.Count < 2)
         {
-            Position = Vector3.MoveTowards(Position, Target, movementSpeed);
-            transform.position = Position;
+            return;
+        }
+        if (Vector3.Distance(_start, _target) > 0.1f)
+        {
+            _start = Vector3.MoveTowards(_start, _target, _movementSpeed * Time.deltaTime);
+            _player.transform.position = _start;
         }
         else
         {
-            currentIndex++;
-            if (currentIndex >= Road.Count)
+            _currentIndex++;
+            if (_currentIndex >= _path.Count)
             {
-                currentIndex = 0;
-            }            
-            Target = Road[currentIndex];
+                _currentIndex = 0;
+            }
+            _target = _path[_currentIndex];
         }
     }    
     

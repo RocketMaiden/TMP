@@ -1,71 +1,80 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Scenes.Scripts
 {
     public class Pathfinder : MonoBehaviour
     {
         [SerializeField]
-        private Field _field;
+        private FieldHolder _fieldHolder = null;
 
         [SerializeField]
-        private Path _path;
+        private Path _path = null;
+
+        [SerializeField]
+        private Button _goButton = null;
 
 
         private void Start()
-        {            
-            if(TryFindStartNode(out var node))
-            {
-                Debug.Log(node.transform.position);
-                _path.Road[0] = node.transform.position;
-            }
-            else
-            {
-                Debug.LogError("start not found!!!");
-            }
+        {
+            _fieldHolder.Initialize(6, 6);
+            _goButton.onClick.AddListener(FindPath);
 
         }
         
         private void Update()
         {
-            SetPath();
+            _path.Tick();
+            _fieldHolder.Tick();
         }
 
         private bool TryFindStartNode(out Node node)
         {
-            for (int i = 0; i < _field.width; i++)
+            for (int i = 0; i < _fieldHolder.Width; i++)
             {
-                for (int j = 0; j < _field.width; j++)
+                for (int j = 0; j < _fieldHolder.Height; j++)
                 {
-                    if (_field.field[i, j].NodeType == NodeType.Start)
+                    if (_fieldHolder.Field[i, j].NodeType == NodeType.Start)
                     {
-                        node = _field.field[i, j];
+                        node = _fieldHolder.Field[i, j];                        
                         return true;
                     }
                 }
             }
             node = null;
             return false;
-        }
+        }  
         
 
-        private void SetPath()
+
+        private void FindPath()
         {
-            for (int i = 0; i < _field.width; i++)
+            if (TryFindStartNode(out var node))
             {
-                for (int j = 0; j < _field.width; j++)
+                Debug.Log(node.transform.position);
+                _path.Initialize(node.transform.position);
+            }
+            else
+            {
+                Debug.LogError("start not found!!!");
+                return;
+            }
+
+            List<Vector3> road = new List<Vector3>();
+
+            for (int i = 0; i < _fieldHolder.Width; i++)
+            {
+                for (int j = 0; j < _fieldHolder.Width; j++)
                 {
-                    if (_field.field[i, j].NodeType == NodeType.Passable)
+                    if (_fieldHolder.Field[i, j].NodeType == NodeType.Passable)
                     {
-                       AddNodeToRoad(_field.field[i, j]);
+                        road.Add(_fieldHolder.Field[i, j].transform.position);
                     }
                 }
             }
-        }
-        public void AddNodeToRoad(Node node)
-        {
-            Vector3 nodePosition = node.transform.position;
-            _path.Road.Add(nodePosition);
-        }
+            _path.SetRoad(road);
+        }        
 
     }
 }
