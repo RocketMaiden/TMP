@@ -1,14 +1,15 @@
 ﻿using UnityEngine;
+
+
 public enum NodeType
-{    
+{
     Passable,
-    ImPassable,
+    Impassable,
     Start,
     Finish,
     None
 }
-
 public class Node : MonoBehaviour
 {
-    public NodeType NodeType = NodeType.None;
+    public NodeType NodeType;
 }
