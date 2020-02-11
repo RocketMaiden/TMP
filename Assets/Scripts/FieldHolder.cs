@@ -40,7 +40,19 @@ public class FieldHolder : MonoBehaviour
                 var go = Instantiate(_nodePrefab, new Vector3(i + i * 0.1f, j + j * 0.1f, 0f), Quaternion.identity);
                 go.transform.SetParent(transform);
                 _field[i, j] = go.GetComponent<Node>();
+                _field[i, j].X = i;
+                _field[i, j].Y = j;
                 _field[i, j].NodeType = NodeType.Passable;
+            }
+        }
+    }
+    public void ClearField()
+    {
+        for (int i = 0; i < _width; i++)
+        {
+            for (int j = 0; j < _height; j++)
+            {
+                _field[i, j].ParentNode = null;
             }
         }
     }

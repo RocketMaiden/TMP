@@ -34,33 +34,38 @@ public class Pathfinder : MonoBehaviour
 
     private void FindPath()
     {
-        
         Node nodeStart;
-        Node nodeFinish;
+      
 
         if (!TryFindFirstNode(NodeType.Start, out nodeStart))
         {
             Debug.Log("Start does not exist");
             return;
         }
-
-        if (!TryFindFirstNode(NodeType.Finish, out nodeFinish))
+        Point _currentPoint = new Point();
+        _currentPoint.X = nodeStart.X;
+        _currentPoint.Y = nodeStart.Y;
+       
+        Node nodeFinish = GoFindPath(_currentPoint);
+        if (nodeFinish == null)
         {
             Debug.Log("Finish does not exist");
             return;
         }
 
         var _localPath = new List<Vector3>();
-        _localPath.Add(nodeStart.gameObject.transform.position);
-
-        if (!TryFindPath(_localPath))
+        while (true)
         {
-            Debug.Log("There are no passable nodes!");
-            return;
+            _localPath.Add(nodeFinish.transform.position);
+            if (nodeFinish.ParentNode == null)
+            {               
+                break;
+            }            
+            nodeFinish = nodeFinish.ParentNode;
         }
-        _localPath.Add(nodeFinish.gameObject.transform.position);
-
+        _localPath.Reverse();
         _path.Initialize(_localPath);
+        _fieldHolder.ClearField();
     }    
     
     private bool TryFindFirstNode(NodeType type, out Node node)
@@ -72,9 +77,6 @@ public class Pathfinder : MonoBehaviour
                 if (_fieldHolder.Field[i, j].NodeType == type)
                 {
                     node = _fieldHolder.Field[i, j];
-                    node.X = i;
-                    node.Y = j;
-                    node.ParentNode = null;
                     return true;
                 }
             }
@@ -83,20 +85,7 @@ public class Pathfinder : MonoBehaviour
         return false;
     }
 
-    private bool TryFindPath(List <Vector3> path)
-    {       
-        for (int i = 0; i < _fieldHolder.Width; i++)
-        {
-            for (int j = 0; j < _fieldHolder.Height; j++)
-            {
-                if (_fieldHolder.Field[i, j].NodeType == NodeType.Passable)
-                {
-                    path.Add(_fieldHolder.Field[i, j].gameObject.transform.position);                    
-                }
-            }
-        }       
-        return true;
-    }
+   
 
 
     struct Point
@@ -105,102 +94,95 @@ public class Pathfinder : MonoBehaviour
         public int Y;
     }
 
-    private void PathFindingAlgorythm()
-    {
-        //todo save parent if it valise
-        Node _current;
-        List<Node> _path = new List<Node>();        
+   
 
-
-        if (TryFindFirstNode(NodeType.Start, out _current))
-        {
-            Point _currentPoint = new Point();
-            _currentPoint.X = _current.X;
-            _currentPoint.Y = _current.Y;
-            GoFindPath(_currentPoint);
-        }      
-        
-    }
-
-    private void RevealThePath(List<Point> visitedPoints)
-    {
-        List<Node> _path = new List<Node>();
-        for (int i = 0; i <= visitedPoints.Count; i++)
-        {
-            _path.Add(_fieldHolder.Field[visitedPoints[i].X, visitedPoints[i].Y].ParentNode);
-        }
-    }
+  
     
-    private void GoFindPath(Point current)
+    private Node GoFindPath(Point current)
     {
         List<Point> _surroundPoints = new List<Point>();
 
         Point rightNeighbour = new Point();
         rightNeighbour.X = current.X;
         rightNeighbour.Y = current.Y + 1;
+        if (IsItSurround(rightNeighbour, current))
+        {
+            if (_fieldHolder.Field[rightNeighbour.X, rightNeighbour.Y].NodeType == NodeType.Finish)
+            {
+                return _fieldHolder.Field[rightNeighbour.X, rightNeighbour.Y];
+
+            }
+            _surroundPoints.Add(rightNeighbour);
+        }
 
         Point leftNeighbour = new Point();
         leftNeighbour.X = current.X;
         leftNeighbour.Y = current.Y - 1;
+        if (IsItSurround(leftNeighbour, current))
+        {
+            if (_fieldHolder.Field[leftNeighbour.X, leftNeighbour.Y].NodeType == NodeType.Finish)
+            {
+                return _fieldHolder.Field[leftNeighbour.X, leftNeighbour.Y];
+
+            }
+            _surroundPoints.Add(leftNeighbour);
+        }
 
         Point upNeighbour = new Point();
         upNeighbour.X = current.X - 1;
         upNeighbour.Y = current.Y;
+        if (IsItSurround(upNeighbour, current))
+        {
+            if (_fieldHolder.Field[upNeighbour.X, upNeighbour.Y].NodeType == NodeType.Finish)
+            {
+                return _fieldHolder.Field[upNeighbour.X, upNeighbour.Y];
+
+            }
+            _surroundPoints.Add(upNeighbour);
+        }
 
         Point downNeighbour = new Point();
         downNeighbour.X = current.X + 1;
         downNeighbour.Y = current.Y;
-
-        if (IsPointValid(rightNeighbour))
-        {
-            if (_fieldHolder.Field[rightNeighbour.X, rightNeighbour.Y].NodeType == NodeType.Finish)
-            {
-                Debug.Log(rightNeighbour);
-                return;
-            }
-            _fieldHolder.Field[rightNeighbour.X, rightNeighbour.Y].ParentNode = _fieldHolder.Field[current.X, current.Y];
-            _surroundPoints.Add(rightNeighbour); 
-        }
-        if (IsPointValid(downNeighbour))
+        if (IsItSurround(downNeighbour, current))
         {
             if (_fieldHolder.Field[downNeighbour.X, downNeighbour.Y].NodeType == NodeType.Finish)
             {
-                Debug.Log (downNeighbour);
+                return _fieldHolder.Field[downNeighbour.X, downNeighbour.Y];
+
             }
-            _fieldHolder.Field[downNeighbour.X, downNeighbour.Y].ParentNode = _fieldHolder.Field[current.X, current.Y];
             _surroundPoints.Add(downNeighbour);
         }
-        if (IsPointValid(leftNeighbour))
+
+
+        for (var index = 0; index < _surroundPoints.Count; index++ )
         {
-            if (_fieldHolder.Field[leftNeighbour.X, leftNeighbour.Y].NodeType == NodeType.Finish)
+            var node = GoFindPath(_surroundPoints[index]);
+            if (node != null)
             {
-                Debug.Log (leftNeighbour);
+                return node;
             }
-            _fieldHolder.Field[leftNeighbour.X, leftNeighbour.Y].ParentNode = _fieldHolder.Field[current.X, current.Y];
-            _surroundPoints.Add(leftNeighbour);
         }
-        if (IsPointValid(upNeighbour))
+        return null;
+    }
+    private bool IsItSurround(Point point, Point current)
+    {
+        if (IsPointValid(point))
         {
-            if (_fieldHolder.Field[upNeighbour.X, upNeighbour.Y].NodeType == NodeType.Finish)
-            {
-                Debug.Log (upNeighbour);
-            }
-            _fieldHolder.Field[upNeighbour.X, upNeighbour.Y].ParentNode = _fieldHolder.Field[current.X, current.Y];
-            _surroundPoints.Add(upNeighbour);
+           
+            _fieldHolder.Field[point.X, point.Y].ParentNode = _fieldHolder.Field[current.X, current.Y];
+            return true;
         }
-        for(var index = 0; index < _surroundPoints.Count; index++ )
-        {
-            GoFindPath(_surroundPoints[index]);            
-        }
-        RevealThePath(_surroundPoints);
+        return false;
     }
 
 
 
     private bool IsPointValid(Point point)
-    {   
+    {
 
-        if ( !(0 <= point.X) && (point.X <= _fieldHolder.Width) && ( 0 <= point.Y) && (point.Y <= _fieldHolder.Height))
+        if (point.X < 0 || point.X >= _fieldHolder.Width ||
+            point.Y < 0 || point.Y >= _fieldHolder.Height)
         {
             return false;
         }

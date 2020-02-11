@@ -43,9 +43,13 @@ public class Path : MonoBehaviour
             _index++;
             if (_index >= _path.Count)
             {
-                _index = 0;
+                _path = null;
             }
-            _target = _path[_index];
+            else
+            {
+                _target = _path[_index];
+            }
+           
         }
     }
 }
