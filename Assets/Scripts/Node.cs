@@ -12,4 +12,8 @@ public enum NodeType
 public class Node : MonoBehaviour
 {
     public NodeType NodeType;
+    public int X;
+    public int Y;
+    public Node ParentNode;
+
 }
