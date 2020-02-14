@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -83,21 +82,13 @@ public class Pathfinder : MonoBehaviour
         }
         node = null;
         return false;
-    }
-
-   
-
-
+    } 
     struct Point
     {
         public int X;
         public int Y;
     }
 
-   
-
-  
-    
     private Node GoFindPath(Point current)
     {
         List<Point> _surroundPoints = new List<Point>();
