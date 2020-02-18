@@ -11,10 +11,7 @@ public class Pathfinder : MonoBehaviour
     private Path _path = null;
 
     [SerializeField]
-    private Button _button = null;
-
-
-    
+    private Button _button = null;    
 
 
     // Start is called before the first frame update
